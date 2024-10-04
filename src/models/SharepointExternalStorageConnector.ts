@@ -1,7 +1,9 @@
-import { FileStatus, IExternalStorageConnectionConnector, IFile, ObjectDescriptor, ObjectKind } from '@crewdle/web-sdk-types';
+import { FileStatus, IExternalStorageConnectionConnector, IFile, ObjectDescriptor, ObjectKind, StorageEvent, StorageEventType } from '@crewdle/web-sdk-types';
 import { SharepointFile } from './SharepointFile';
 
 export class SharepointExternalStorageConnector implements IExternalStorageConnectionConnector {
+  private deltaLink?: string;
+
   constructor(private siteId: string, private driveId: string, private accessToken: string, private refreshToken: () => Promise<string>) {}
 
   async get(path: string, retry = true): Promise<IFile> {
@@ -92,7 +94,84 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
     }
   }
 
+  async listChanges(): Promise<StorageEvent[]> {
+    const events: StorageEvent[] = [];
+
+    try {
+      const url = this.deltaLink ? this.deltaLink : `https://graph.microsoft.com/v1.0/sites/${this.siteId}/drives/${this.driveId}/root/delta(token='latest')`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to list changes: ${response.statusText}`);
+      }
+
+      let data = await response.json();
+      events.push(...this.processChanges(data));
+
+      while (data['@odata.nextLink']) {
+        const nextResponse = await fetch(data['@odata.nextLink'], {
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        });
+
+        if (!nextResponse.ok) {
+          throw new Error(`Failed to list changes: ${nextResponse.statusText}`);
+        }
+
+        data = await nextResponse.json();
+        events.push(...this.processChanges(data));
+      }
+
+      this.deltaLink = data['@odata.deltaLink'];
+    } catch (error: any) {
+      throw new Error(`Failed to list changes: ${error.message}`);
+    }
+
+    return events;
+  }
+
   private async handleRefreshToken() {
     this.accessToken = await this.refreshToken();
+  }
+
+  private processChanges(data: any): StorageEvent[] {
+    const events: StorageEvent[] = [];
+
+    for (const item of data.value) {
+      if (item.file) {
+        if (item.deleted) {
+          events.push({
+            event: StorageEventType.FileDelete,
+            payload: {
+              name: item.name,
+              path: item.parentReference.path,
+              pathName: item.parentReference.path + '/' + item.name,
+            },
+          });
+        } else {
+          events.push({
+            event: StorageEventType.FileWrite,
+            payload: {
+              file: {
+                kind: ObjectKind.File,
+                path: item.parentReference.path,
+                type: item.file.mimeType,
+                size: item.size,
+                name: item.name,
+                pathName: item.parentReference.path + '/' + item.name,
+                status: FileStatus.Synced,
+              },
+            },
+          });
+        }
+      }
+    }
+
+    return events;
   }
 }
