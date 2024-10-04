@@ -1,0 +1,29 @@
+{
+  "name": "@crewdle/mist-connector-sharepoint",
+  "version": "1.0.0",
+  "description": "A Crewdle Mist connector to use SharePoint as a data source",
+  "main": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "copy-sdk-types": "cp -r ../web-sdk-types/dist ./node_modules/@crewdle/web-sdk-types"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Crewdle/mist-connector-sharepoint.git"
+  },
+  "author": "Crewdle Technologies",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Crewdle/mist-connector-sharepoint/issues"
+  },
+  "homepage": "https://github.com/Crewdle/mist-connector-sharepoint#readme",
+  "files": [
+    "dist/"
+  ],
+  "devDependencies": {
+    "@crewdle/web-sdk-types": "^1.0.23",
+    "@types/node": "^22.7.4",
+    "typescript": "^5.6.2"
+  }
+}
