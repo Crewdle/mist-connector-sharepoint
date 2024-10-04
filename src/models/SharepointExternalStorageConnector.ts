@@ -25,18 +25,14 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
       }
       const item = await response.json();
 
-      const fileResponse = await fetch(`https://graph.microsoft.com/v1.0/sites/${this.siteId}/drives/${this.driveId}/items/${item.id}/content`, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+      const fileResponse = await fetch(item['@microsoft.graph.downloadUrl']);
       
       if (!fileResponse.ok) {
         throw new Error(`Failed to get file: ${fileResponse.statusText}`);
       }
 
       const file = await fileResponse.blob();
-      return new SharepointFile(item.name, item.size, item.file.type, item.lastModifiedDateTime, file);
+      return new SharepointFile(item.name, item.size, item.file.mimeType, item.lastModifiedDateTime, file);
     } catch (error: any) {
       throw new Error(`Failed to get file: ${error.message}`);
     }
