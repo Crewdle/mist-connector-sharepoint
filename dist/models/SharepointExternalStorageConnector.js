@@ -59,8 +59,21 @@ export class SharepointExternalStorageConnector {
             if (!response.ok) {
                 throw new Error(`Failed to list files: ${response.statusText}`);
             }
-            const data = await response.json();
-            for (const item of data.value) {
+            let data = await response.json();
+            const fetchItems = [...data.value];
+            while (data['@odata.nextLink']) {
+                const nextResponse = await fetch(data['@odata.nextLink'], {
+                    headers: {
+                        Authorization: `Bearer ${this.accessToken}`,
+                    },
+                });
+                if (!nextResponse.ok) {
+                    throw new Error(`Failed to list files: ${nextResponse.statusText}`);
+                }
+                data = await nextResponse.json();
+                fetchItems.push(...data.value);
+            }
+            for (const item of fetchItems) {
                 if (item.folder) {
                     items.push({
                         kind: ObjectKind.Folder,
