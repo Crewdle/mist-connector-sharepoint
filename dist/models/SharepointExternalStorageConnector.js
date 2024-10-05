@@ -101,7 +101,7 @@ export class SharepointExternalStorageConnector {
             throw new Error(`Failed to list files: ${error.message}`);
         }
     }
-    async listChanges() {
+    async listChanges(retry = true) {
         const events = [];
         try {
             const url = this.deltaLink ? this.deltaLink : `https://graph.microsoft.com/v1.0/sites/${this.siteId}/drives/${this.driveId}/root/delta(token='latest')`;
@@ -110,6 +110,10 @@ export class SharepointExternalStorageConnector {
                     Authorization: `Bearer ${this.accessToken}`,
                 },
             });
+            if (response.status === 401 && retry) {
+                await this.handleRefreshToken();
+                return this.listChanges(false);
+            }
             if (!response.ok) {
                 throw new Error(`Failed to list changes: ${response.statusText}`);
             }

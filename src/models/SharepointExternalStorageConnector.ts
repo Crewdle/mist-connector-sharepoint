@@ -106,7 +106,7 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
     }
   }
 
-  async listChanges(): Promise<StorageEvent[]> {
+  async listChanges(retry = true): Promise<StorageEvent[]> {
     const events: StorageEvent[] = [];
 
     try {
@@ -116,6 +116,11 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
           Authorization: `Bearer ${this.accessToken}`,
         },
       });
+
+      if (response.status === 401 && retry) {
+        await this.handleRefreshToken();
+        return this.listChanges(false);
+      }
 
       if (!response.ok) {
         throw new Error(`Failed to list changes: ${response.statusText}`);

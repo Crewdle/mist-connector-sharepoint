@@ -8,7 +8,7 @@ export declare class SharepointExternalStorageConnector implements IExternalStor
     constructor(siteId: string, driveId: string, accessToken: string, refreshToken: () => Promise<string>);
     get(path: string, retry?: boolean): Promise<IFile>;
     list(path: string, recursive: boolean, retry?: boolean): Promise<ObjectDescriptor[]>;
-    listChanges(): Promise<StorageEvent[]>;
+    listChanges(retry?: boolean): Promise<StorageEvent[]>;
     private handleRefreshToken;
     private processChanges;
 }
