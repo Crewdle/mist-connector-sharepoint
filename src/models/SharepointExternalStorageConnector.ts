@@ -68,15 +68,15 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
             kind: ObjectKind.Folder,
             name: item.name,
             path,
-            pathName: `${path}/${item.name}`,
-            entries: recursive ? await this.list(`${path}/${item.name}`, recursive) : [],
+            pathName: `${itemPath}/${item.name}`,
+            entries: recursive ? await this.list(`${itemPath}/${item.name}`, recursive) : [],
           });
         } else {
           items.push({
             kind: ObjectKind.File,
             name: item.name,
             path,
-            pathName: `${path}/${item.name}`,
+            pathName: `${itemPath}/${item.name}`,
             size: item.size,
             status: FileStatus.Synced,
             type: item.file.mimeType,
@@ -139,14 +139,15 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
     const events: StorageEvent[] = [];
 
     for (const item of data.value) {
+      const path = item.parentReference.path.replace(`/drives/${this.driveId}/root:`, '');
       if (item.file) {
         if (item.deleted) {
           events.push({
             event: StorageEventType.FileDelete,
             payload: {
               name: item.name,
-              path: item.parentReference.path,
-              pathName: item.parentReference.path + '/' + item.name,
+              path: path,
+              pathName: path + '/' + item.name,
             },
           });
         } else {
@@ -159,7 +160,7 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
                 type: item.file.mimeType,
                 size: item.size,
                 name: item.name,
-                pathName: item.parentReference.path + '/' + item.name,
+                pathName: path + '/' + item.name,
                 status: FileStatus.Synced,
               },
             },
