@@ -15,12 +15,12 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
         },
       });
 
-      if (response.status === 401 && retry) {
+      if (!response.ok) {
+        if (retry) {
         await this.handleRefreshToken();
         return this.get(path, false);
       }
 
-      if (!response.ok) {
         throw new Error(`Failed to get file: ${response.statusText}`);
       }
       const item = await response.json();
@@ -34,6 +34,11 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
       const file = await fileResponse.blob();
       return new SharepointFile(item.name, item.size, item.file.mimeType, item.lastModifiedDateTime, file);
     } catch (error: any) {
+      if (retry) {
+        await this.handleRefreshToken();
+        return this.get(path, false);
+      }
+
       throw new Error(`Failed to get file: ${error.message}`);
     }
   }
@@ -52,12 +57,12 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
         },
       });
 
-      if (response.status === 401 && retry) {
+      if (!response.ok) {
+        if (retry) {
         await this.handleRefreshToken();
         return this.list(path, recursive, false);
       }
 
-      if (!response.ok) {
         throw new Error(`Failed to list files: ${response.statusText}`);
       }
 
@@ -102,6 +107,11 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
 
       return items;
     } catch (error: any) {
+      if (retry) {
+        await this.handleRefreshToken();
+        return this.list(path, recursive, false);
+      }
+
       throw new Error(`Failed to list files: ${error.message}`);
     }
   }
@@ -117,12 +127,12 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
         },
       });
 
-      if (response.status === 401 && retry) {
+      if (!response.ok) {
+        if (retry) {
         await this.handleRefreshToken();
         return this.listChanges(false);
       }
 
-      if (!response.ok) {
         throw new Error(`Failed to list changes: ${response.statusText}`);
       }
 
@@ -146,6 +156,11 @@ export class SharepointExternalStorageConnector implements IExternalStorageConne
 
       this.deltaLink = data['@odata.deltaLink'];
     } catch (error: any) {
+      if (retry) {
+        await this.handleRefreshToken();
+        return this.listChanges(false);
+      }
+
       throw new Error(`Failed to list changes: ${error.message}`);
     }
 

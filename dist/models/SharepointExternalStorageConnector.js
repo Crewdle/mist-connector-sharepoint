@@ -20,11 +20,11 @@ export class SharepointExternalStorageConnector {
                     Authorization: `Bearer ${this.accessToken}`,
                 },
             });
-            if (response.status === 401 && retry) {
+            if (!response.ok) {
+                if (retry) {
                 await this.handleRefreshToken();
                 return this.get(path, false);
             }
-            if (!response.ok) {
                 throw new Error(`Failed to get file: ${response.statusText}`);
             }
             const item = await response.json();
@@ -36,6 +36,10 @@ export class SharepointExternalStorageConnector {
             return new SharepointFile(item.name, item.size, item.file.mimeType, item.lastModifiedDateTime, file);
         }
         catch (error) {
+            if (retry) {
+                await this.handleRefreshToken();
+                return this.get(path, false);
+            }
             throw new Error(`Failed to get file: ${error.message}`);
         }
     }
@@ -52,11 +56,11 @@ export class SharepointExternalStorageConnector {
                     Authorization: `Bearer ${this.accessToken}`,
                 },
             });
-            if (response.status === 401 && retry) {
+            if (!response.ok) {
+                if (retry) {
                 await this.handleRefreshToken();
                 return this.list(path, recursive, false);
             }
-            if (!response.ok) {
                 throw new Error(`Failed to list files: ${response.statusText}`);
             }
             let data = await response.json();
@@ -98,6 +102,10 @@ export class SharepointExternalStorageConnector {
             return items;
         }
         catch (error) {
+            if (retry) {
+                await this.handleRefreshToken();
+                return this.list(path, recursive, false);
+            }
             throw new Error(`Failed to list files: ${error.message}`);
         }
     }
@@ -110,11 +118,11 @@ export class SharepointExternalStorageConnector {
                     Authorization: `Bearer ${this.accessToken}`,
                 },
             });
-            if (response.status === 401 && retry) {
+            if (!response.ok) {
+                if (retry) {
                 await this.handleRefreshToken();
                 return this.listChanges(false);
             }
-            if (!response.ok) {
                 throw new Error(`Failed to list changes: ${response.statusText}`);
             }
             let data = await response.json();
@@ -134,6 +142,10 @@ export class SharepointExternalStorageConnector {
             this.deltaLink = data['@odata.deltaLink'];
         }
         catch (error) {
+            if (retry) {
+                await this.handleRefreshToken();
+                return this.listChanges(false);
+            }
             throw new Error(`Failed to list changes: ${error.message}`);
         }
         return events;
