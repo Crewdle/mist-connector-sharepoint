@@ -1,6 +1,6 @@
 {
   "name": "@crewdle/mist-connector-sharepoint",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A Crewdle Mist connector to use SharePoint as a data source",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -22,7 +22,7 @@
     "dist/"
   ],
   "devDependencies": {
-    "@crewdle/web-sdk-types": "^1.0.23",
+    "@crewdle/web-sdk-types": "^1.0.24",
     "@types/node": "^22.7.4",
     "typescript": "^5.6.2"
   }
