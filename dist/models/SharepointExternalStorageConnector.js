@@ -22,9 +22,9 @@ export class SharepointExternalStorageConnector {
             });
             if (!response.ok) {
                 if (retry) {
-                await this.handleRefreshToken();
-                return this.get(path, false);
-            }
+                    await this.handleRefreshToken();
+                    return this.get(path, false);
+                }
                 throw new Error(`Failed to get file: ${response.statusText}`);
             }
             const item = await response.json();
@@ -58,9 +58,9 @@ export class SharepointExternalStorageConnector {
             });
             if (!response.ok) {
                 if (retry) {
-                await this.handleRefreshToken();
-                return this.list(path, recursive, false);
-            }
+                    await this.handleRefreshToken();
+                    return this.list(path, recursive, false);
+                }
                 throw new Error(`Failed to list files: ${response.statusText}`);
             }
             let data = await response.json();
@@ -120,9 +120,9 @@ export class SharepointExternalStorageConnector {
             });
             if (!response.ok) {
                 if (retry) {
-                await this.handleRefreshToken();
-                return this.listChanges(false);
-            }
+                    await this.handleRefreshToken();
+                    return this.listChanges(false);
+                }
                 throw new Error(`Failed to list changes: ${response.statusText}`);
             }
             let data = await response.json();
